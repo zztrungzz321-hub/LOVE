@@ -308,6 +308,13 @@ function createSakuraFall() {
   }
 }
 
+function revealIntroText() {
+  [tinyLabelEl, mainTextEl, messageTextEl, statusLineEl, countdownSubtitleEl].forEach((el) => {
+    if (el) el.classList.add('reveal');
+  });
+  countdownEl.classList.remove('hidden');
+}
+
 function updateCountdown() {
   countdownEl.classList.remove('pop');
   void countdownEl.offsetWidth;
@@ -341,4 +348,5 @@ createPetals();
 createFloatingDots();
 drawMatrix();
 animateDots();
+revealIntroText();
 updateCountdown();
