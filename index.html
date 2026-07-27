@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Love confession</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <canvas id="matrixCanvas"></canvas>
+    <canvas id="dotCanvas"></canvas>
+    <div class="background-grid"></div>
+    <div class="burst-layer" id="burstLayer"></div>
+    <div class="petal-layer" id="petalLayer"></div>
+    <div class="container">
+      <div class="card">
+        <div class="signal"></div>
+        <p class="tiny-label" id="tinyLabel">SẴN SÀNG • GỬI TÌNH YÊU</p>
+        <h1 id="mainText">EM CÓ BIẾT KHÔNG?</h1>
+        <p class="message" id="messageText">Đang đếm ngược...</p>
+        <div class="countdown-shell">
+          <div class="countdown" id="countdown">10</div>
+          <div class="countdown-subtitle" id="countdownSubtitle">00:10</div>
+        </div>
+        <button class="love-trigger" id="loveTrigger" type="button">I LOVE YOU</button>
+        <div class="status" id="statusLine">[LOVE-001] Bắt đầu hiệu ứng</div>
+      </div>
+    </div>
+
+    <div class="scene-transition" id="sceneTransition" aria-hidden="true"></div>
+    <div class="heart-overlay" id="heartOverlay" aria-hidden="true">
+      <div class="heart-shape"><span>I LOVE YOU</span></div>
+    </div>
+    <div class="sakura-layer" id="sakuraLayer" aria-hidden="true"></div>
+    <audio id="finalAudio" src="assets/sound.mp3" loop preload="auto"></audio>
+
+    <script src="script.js"></script>
+  </body>
+</html>
