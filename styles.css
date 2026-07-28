@@ -98,10 +98,10 @@ h1{margin:0 0 12px;font-family:"Playfair Display", serif;font-size:clamp(2.4rem,
 .reveal{opacity:1;transform:translateY(0)}
 .hidden{display:none}
 
-/* audio toggle (corner) */
-.audio-toggle{position:fixed;right:18px;top:18px;z-index:10;display:inline-grid;place-items:center;width:44px;height:44px;border-radius:10px;background:rgba(255,255,255,0.04);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.06);color:#fff;cursor:pointer;font-size:18px;box-shadow:0 8px 20px rgba(0,0,0,0.28)}
-.audio-toggle:hover{transform:translateY(-2px)}
-.audio-toggle.muted{opacity:0.6}
+/* audio toggle (corner) - made larger and brighter for visibility */
+.audio-toggle{position:fixed;right:18px;top:18px;z-index:9999;display:inline-grid;place-items:center;width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg, rgba(255,111,167,0.92), rgba(255,200,220,0.9));color:#330017;cursor:pointer;font-size:20px;border:1px solid rgba(255,255,255,0.12);box-shadow:0 10px 30px rgba(0,0,0,0.36);transition:transform .18s ease,opacity .15s ease}
+.audio-toggle:hover{transform:translateY(-3px) scale(1.02)}
+.audio-toggle.muted{opacity:0.9;filter:grayscale(.2)}
 
 /* responsive tweaks */
 @media (max-width:420px){.heart-lock{width:146px;height:146px}.countdown{font-size:clamp(3rem,12vw,7rem)}}
