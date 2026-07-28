@@ -39,6 +39,46 @@ let audioUnlocked = false;
 const finalAudioEl = document.getElementById('finalAudio');
 const sakuraLayerEl = document.getElementById('sakuraLayer');
 
+// Audio toggle button (corner control)
+const audioToggleEl = document.getElementById('audioToggle');
+
+// Ensure audio starts muted until user explicitly enables it
+if (finalAudioEl) {
+  try { finalAudioEl.muted = true; } catch (e) {}
+}
+
+function updateAudioToggleUI() {
+  if (!audioToggleEl) return;
+  if (!finalAudioEl) {
+    audioToggleEl.style.display = 'none';
+    return;
+  }
+  const isMuted = finalAudioEl.muted || finalAudioEl.paused;
+  audioToggleEl.classList.toggle('muted', isMuted);
+  audioToggleEl.textContent = isMuted ? '🔇' : '🔊';
+  audioToggleEl.setAttribute('aria-pressed', String(!isMuted));
+}
+
+if (audioToggleEl) {
+  audioToggleEl.addEventListener('click', () => {
+    if (!finalAudioEl) return;
+    // toggle mute/play
+    if (finalAudioEl.muted || finalAudioEl.paused) {
+      finalAudioEl.muted = false;
+      // user gesture — try to play
+      finalAudioEl.play().catch(() => {});
+      audioUnlocked = true;
+    } else {
+      finalAudioEl.muted = true;
+      try { finalAudioEl.pause(); } catch (e) {}
+    }
+    updateAudioToggleUI();
+  });
+}
+
+// initialize UI state
+setTimeout(updateAudioToggleUI, 120);
+
 function playFinalAudio() {
   if (!finalAudioEl) return;
 
