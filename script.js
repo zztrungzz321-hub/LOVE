@@ -379,19 +379,19 @@ function burstUnlockUI() {
   const targets = [unlockFieldEl, heartLockEl].filter(Boolean);
   targets.forEach((target) => {
     const rect = target.getBoundingClientRect();
-    const container = document.body;
-    for (let i = 0; i < 14; i += 1) {
+    for (let i = 0; i < 20; i += 1) {
       const petal = document.createElement('span');
       petal.className = 'unlock-sakura';
       const x = rect.left + rect.width / 2 + (Math.random() - 0.5) * rect.width;
       const y = rect.top + rect.height / 2 + (Math.random() - 0.5) * rect.height;
-      const dx = (Math.random() - 0.5) * 240;
-      const dy = -120 + Math.random() * -80;
+      const dx = (Math.random() - 0.5) * 260;
+      const dy = -120 + Math.random() * -100;
       petal.style.left = `${x}px`;
       petal.style.top = `${y}px`;
       petal.style.setProperty('--dx', `${dx}px`);
       petal.style.setProperty('--dy', `${dy}px`);
-      container.appendChild(petal);
+      petal.style.zIndex = '20';
+      document.body.appendChild(petal);
       petal.addEventListener('animationend', () => petal.remove());
     }
   });
@@ -399,10 +399,16 @@ function burstUnlockUI() {
 
 function hideUnlockUI() {
   if (unlockFieldEl) {
+    unlockFieldEl.classList.remove('active');
     unlockFieldEl.classList.add('explode-out');
+    unlockFieldEl.style.pointerEvents = 'none';
+    unlockFieldEl.style.maxHeight = '0';
+    unlockFieldEl.style.marginBottom = '0';
   }
   if (heartLockEl) {
+    heartLockEl.classList.remove('active');
     heartLockEl.classList.add('explode-out');
+    heartLockEl.style.pointerEvents = 'none';
   }
   setTimeout(() => {
     if (unlockFieldEl) {
@@ -411,7 +417,7 @@ function hideUnlockUI() {
     if (heartLockEl) {
       heartLockEl.style.display = 'none';
     }
-  }, 550);
+  }, 650);
 }
 
 function handleHeartUnlock() {
