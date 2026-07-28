@@ -87,9 +87,17 @@ function playFinalAudio() {
     finalAudioEl.pause();
     finalAudioEl.currentTime = 0;
     finalAudioEl.play().catch(() => {
-      finalAudioEl.src = 'music.mp4';
-      finalAudioEl.load();
-      finalAudioEl.play().catch(() => {});
+      // fallback: try local .mp3 if present
+      try {
+        finalAudioEl.src = 'music.mp3';
+        finalAudioEl.load();
+        finalAudioEl.play().catch(() => {
+          // if playback still fails, open Apple Music page in new tab
+          window.open('https://music.apple.com/vn/song/100-years-love/1809365634?l=vi', '_blank');
+        });
+      } catch (e) {
+        window.open('https://music.apple.com/vn/song/100-years-love/1809365634?l=vi', '_blank');
+      }
     });
   } catch (e) {}
 }
