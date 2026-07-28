@@ -280,6 +280,16 @@ function triggerLoveBurst() {
   tinyLabelEl.textContent = 'TÌNH YÊU • ĐÃ CHẠM ĐẾN NỖI THƯƠNG';
   statusLineEl.textContent = '[LOVE-777] Kết nối hoàn tất';
 
+  if (unlockFieldEl) {
+    unlockFieldEl.style.display = 'none';
+  }
+  if (heartLockEl) {
+    heartLockEl.style.display = 'none';
+  }
+  if (countdownShellEl) {
+    countdownShellEl.style.display = 'none';
+  }
+
   mainTextEl.classList.add('reveal');
   messageTextEl.classList.add('reveal');
   tinyLabelEl.classList.add('reveal');
