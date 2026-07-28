@@ -375,6 +375,45 @@ function startCountdown() {
   countdownTimer = window.setTimeout(tick, 1000);
 }
 
+function burstUnlockUI() {
+  const targets = [unlockFieldEl, heartLockEl].filter(Boolean);
+  targets.forEach((target) => {
+    const rect = target.getBoundingClientRect();
+    const container = document.body;
+    for (let i = 0; i < 14; i += 1) {
+      const petal = document.createElement('span');
+      petal.className = 'unlock-sakura';
+      const x = rect.left + rect.width / 2 + (Math.random() - 0.5) * rect.width;
+      const y = rect.top + rect.height / 2 + (Math.random() - 0.5) * rect.height;
+      const dx = (Math.random() - 0.5) * 240;
+      const dy = -120 + Math.random() * -80;
+      petal.style.left = `${x}px`;
+      petal.style.top = `${y}px`;
+      petal.style.setProperty('--dx', `${dx}px`);
+      petal.style.setProperty('--dy', `${dy}px`);
+      container.appendChild(petal);
+      petal.addEventListener('animationend', () => petal.remove());
+    }
+  });
+}
+
+function hideUnlockUI() {
+  if (unlockFieldEl) {
+    unlockFieldEl.classList.add('explode-out');
+  }
+  if (heartLockEl) {
+    heartLockEl.classList.add('explode-out');
+  }
+  setTimeout(() => {
+    if (unlockFieldEl) {
+      unlockFieldEl.style.display = 'none';
+    }
+    if (heartLockEl) {
+      heartLockEl.style.display = 'none';
+    }
+  }, 550);
+}
+
 function handleHeartUnlock() {
   if (!unlockReady) {
     unlockReady = true;
@@ -402,10 +441,8 @@ function handleHeartUnlock() {
   messageTextEl.textContent = 'Đã mở khóa, đếm ngược đã bắt đầu ✨';
   tinyLabelEl.textContent = 'MỞ KHÓA • ĐẾM NGƯỢC ĐANG CHẠY';
   statusLineEl.textContent = `[LOVE-002] Tên nhận được: ${unlockedName}`;
-  if (heartLockEl) {
-    heartLockEl.classList.add('active');
-    heartLockEl.innerHTML = '<span class="heart-lock__icon">✅</span><span class="heart-lock__text">ĐÃ MỞ</span>';
-  }
+  burstUnlockUI();
+  hideUnlockUI();
   startCountdown();
 }
 
