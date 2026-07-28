@@ -61,14 +61,15 @@ function unlockAudioPlayback() {
 }
 
 function createPetals() {
-  for (let i = 0; i < 32; i += 1) {
+  for (let i = 0; i < 48; i += 1) {
     const petal = document.createElement('span');
     petal.className = 'petal';
     petal.style.left = `${Math.random() * 100}vw`;
-    petal.style.top = `${-8 - Math.random() * 10}vh`;
-    petal.style.setProperty('--drift', `${(Math.random() - 0.5) * 220}px`);
-    petal.style.animationDuration = `${4.5 + Math.random() * 3.5}s`;
-    petal.style.animationDelay = `${Math.random() * 0.7}s`;
+    petal.style.top = `${-8 - Math.random() * 12}vh`;
+    petal.style.setProperty('--drift', `${(Math.random() - 0.5) * 260}px`);
+    petal.style.animationDuration = `${6 + Math.random() * 6}s`;
+    petal.style.animationDelay = `${Math.random() * 3}s`;
+    petal.style.opacity = '0';
     petalLayer.appendChild(petal);
   }
 }
