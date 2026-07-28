@@ -1,440 +1,600 @@
-const countdownEl = document.getElementById('countdown');
-const countdownSubtitleEl = document.getElementById('countdownSubtitle');
-const countdownShellEl = document.getElementById('countdownShell');
-const mainTextEl = document.getElementById('mainText');
-const messageTextEl = document.getElementById('messageText');
-const tinyLabelEl = document.getElementById('tinyLabel');
-const statusLineEl = document.getElementById('statusLine');
-const burstLayer = document.getElementById('burstLayer');
-const petalLayer = document.getElementById('petalLayer');
-const cardEl = document.querySelector('.card');
-const loveTriggerEl = document.getElementById('loveTrigger');
-const heartLockEl = document.getElementById('heartLock');
-const unlockModalEl = document.getElementById('unlockModal');
-const unlockNameInputEl = document.getElementById('unlockNameInput');
-const unlockConfirmBtnEl = document.getElementById('unlockConfirmBtn');
-const unlockCancelBtnEl = document.getElementById('unlockCancelBtn');
-const sceneTransitionEl = document.getElementById('sceneTransition');
-const heartOverlayEl = document.getElementById('heartOverlay');
-const mc = document.getElementById('matrixCanvas');
-const mx = mc.getContext('2d');
-const dc = document.getElementById('dotCanvas');
-const ctx = dc.getContext('2d');
-
-mc.width = window.innerWidth;
-mc.height = window.innerHeight;
-dc.width = window.innerWidth;
-dc.height = window.innerHeight;
-
-let count = 10;
-let isFinished = false;
-let countdownStarted = false;
-let countdownTimer = null;
-let unlockedName = 'em';
-let matrixTimer = null;
-let dots = [];
-let animId = null;
-let step = 0;
-let audioUnlocked = false;
-// audio element for the final reveal; use the existing media file from the repo
-const finalAudioEl = document.getElementById('finalAudio');
-const sakuraLayerEl = document.getElementById('sakuraLayer');
-
-function playFinalAudio() {
-  if (!finalAudioEl) return;
-
-  try {
-    finalAudioEl.loop = true;
-    finalAudioEl.pause();
-    finalAudioEl.currentTime = 0;
-    finalAudioEl.play().catch(() => {
-      finalAudioEl.src = 'music.mp4';
-      finalAudioEl.load();
-      finalAudioEl.play().catch(() => {});
-    });
-  } catch (e) {}
+:root {
+  color-scheme: dark;
 }
 
-function unlockAudioPlayback() {
-  if (audioUnlocked) return;
-  audioUnlocked = true;
-  playFinalAudio();
+* {
+  box-sizing: border-box;
 }
 
-function createPetals() {
-  for (let i = 0; i < 32; i += 1) {
-    const petal = document.createElement('span');
-    petal.className = 'petal';
-    petal.style.left = `${Math.random() * 100}vw`;
-    petal.style.top = `${-8 - Math.random() * 10}vh`;
-    petal.style.setProperty('--drift', `${(Math.random() - 0.5) * 220}px`);
-    petal.style.animationDuration = `${4.5 + Math.random() * 3.5}s`;
-    petal.style.animationDelay = `${Math.random() * 0.7}s`;
-    petalLayer.appendChild(petal);
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow: hidden;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #fef7fb;
+  background: linear-gradient(135deg, #0b0610 0%, #22081a 45%, #2b0d1f 100%);
+  position: relative;
+  transition: background 1.6s ease, color 1.2s ease;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top left, rgba(255, 66, 147, 0.18), transparent 30%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.bursting {
+  background: linear-gradient(135deg, #140815 0%, #32102c 35%, #ff6fa7 100%);
+}
+
+#matrixCanvas,
+#dotCanvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+#matrixCanvas { z-index: 0; }
+#dotCanvas { z-index: 1; }
+
+.background-grid {
+  position: fixed;
+  inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.65), transparent);
+  opacity: 0.28;
+  pointer-events: none;
+  z-index: 0;
+  animation: driftGrid 10s linear infinite;
+}
+
+.container {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+.card {
+  width: min(92vw, 720px);
+  padding: 32px 28px;
+  text-align: center;
+  position: relative;
+  z-index: 3;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
+  border: 1px solid rgba(255, 215, 160, 0.06);
+  box-shadow: 0 20px 60px rgba(16,8,12,0.6), 0 6px 18px rgba(255,160,190,0.04) inset;
+  transform: translateY(0);
+  transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), background 1.2s ease, border-color 1.2s ease, box-shadow 1.2s ease;
+}
+
+.card.final-phase {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 24px 70px rgba(255, 108, 171, 0.16);
+  transform: translateY(-8px) scale(1.01);
+}
+
+.heart-lock {
+  margin: 8px auto 18px;
+  width: 186px;
+  height: 186px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 34px;
+  background: linear-gradient(135deg, rgba(255, 245, 238, 0.16), rgba(255, 192, 214, 0.2));
+  color: #fffefc;
+  font-family: "Montserrat", "Segoe UI", sans-serif;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.heart-lock:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 20px 44px rgba(255, 118, 175, 0.24);
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.heart-lock__icon {
+  font-size: 2rem;
+}
+
+.heart-lock__text {
+  font-size: 0.78rem;
+}
+
+.unlock-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(5, 3, 8, 0.6);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.unlock-modal.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.unlock-modal__card {
+  width: min(92vw, 360px);
+  padding: 24px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.16), rgba(255,255,255,0.08));
+  border: 1px solid rgba(255,255,255,0.18);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.34);
+  text-align: center;
+}
+
+.unlock-modal__title {
+  margin: 0 0 14px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff5fa;
+}
+
+.unlock-modal__input {
+  width: 100%;
+  border: 1px solid rgba(255,255,255,0.24);
+  border-radius: 999px;
+  padding: 12px 14px;
+  outline: none;
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+  font-size: 1rem;
+}
+
+.unlock-modal__input::placeholder {
+  color: rgba(255,255,255,0.7);
+}
+
+.unlock-modal__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.unlock-modal__button {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255,255,255,0.14);
+}
+
+.unlock-modal__button--primary {
+  background: linear-gradient(135deg, #ff7eb3, #ff4f90);
+}
+
+.love-trigger {
+  margin: 20px auto 0;
+  border: 1px solid rgba(255, 215, 160, 0.18);
+  padding: 10px 26px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 245, 238, 0.06), rgba(255, 200, 170, 0.06));
+  color: #fffefc;
+  font-family: "Great Vibes", cursive;
+  font-size: 1.18rem;
+  letter-spacing: 0.22em;
+  cursor: pointer;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.45), 0 6px 18px rgba(255,180,140,0.06) inset;
+  opacity: 0;
+  transform: translateY(14px);
+  pointer-events: none;
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.7s ease, box-shadow 0.7s ease, background 0.7s ease;
+}
+
+.love-trigger.reveal {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.love-trigger:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 14px 34px rgba(255, 116, 175, 0.24);
+}
+
+.scene-transition {
+  position: fixed;
+  inset: -12%;
+  z-index: 4;
+  pointer-events: none;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.24) 0%, rgba(255, 132, 176, 0.16) 34%, rgba(4, 7, 14, 0) 72%);
+  opacity: 0;
+  transform: scale(0.55);
+  transition: opacity 1.4s ease, transform 1.4s cubic-bezier(0.16, 0.84, 0.44, 1);
+}
+
+.scene-transition.active {
+  opacity: 1;
+  transform: scale(1.85);
+}
+
+.heart-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.7s ease;
+}
+
+/* final floating images removed per user request */
+
+.sakura-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.sakura-layer .sakura-petal {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: radial-gradient(circle at 30% 30%, #fff 0%, #ffdbe6 45%, #ff9fbf 100%);
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  opacity: 0.92;
+  transform: rotate(0deg);
+  animation-name: sakuraFall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes sakuraFall {
+  0% { transform: translateY(-6vh) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(110vh) rotate(360deg); opacity: 0.98; }
+}
+
+.heart-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.heart-overlay .heart-shape::after {
+  content: "";
+  position: absolute;
+  inset: 4%;
+  border-radius: 48% 48% 0 0;
+  box-shadow: inset 0 6px 28px rgba(255,255,255,0.06);
+}
+
+.heart-overlay .heart-shape::before {
+  left: -50%;
+}
+
+.heart-overlay .heart-shape::after {
+  top: -50%;
+}
+
+.heart-overlay.active .heart-shape {
+  transform: rotate(-45deg) scale(1);
+}
+
+.heart-overlay .heart-shape span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform: rotate(45deg);
+  font-family: "Great Vibes", cursive;
+  font-size: clamp(2.2rem, 5.4vw, 3.4rem);
+  letter-spacing: 0.26em;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.28), 0 0 22px rgba(255, 255, 255, 0.72);
+  padding: 0 18px;
+  text-align: center;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.heart-overlay .heart-shape::after {
+  content: "";
+  position: absolute;
+  inset: 4%;
+  border-radius: 48% 48% 0 0;
+  box-shadow: inset 0 6px 28px rgba(255,255,255,0.06);
+}
+
+.heart-pulse {
+  animation: heartPulse 1.8s ease-in-out 1;
+}
+
+@keyframes heartPulse {
+  0% { transform: rotate(-45deg) scale(0.36); }
+  40% { transform: rotate(-45deg) scale(1.06); }
+  60% { transform: rotate(-45deg) scale(0.96); }
+  100% { transform: rotate(-45deg) scale(1); }
+}
+
+.heart-overlay.active .heart-shape {
+  transform: rotate(-45deg) scale(1.06);
+}
+
+.heart-overlay {
+  padding: 4vh 6vw;
+}
+
+.signal {
+  width: 78px;
+  height: 78px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.04), 0 0 30px rgba(255, 255, 255, 0.08);
+  position: relative;
+}
+
+.signal::before,
+.signal::after {
+  content: "";
+  position: absolute;
+  inset: 15px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.signal::after {
+  inset: 28px;
+  background: linear-gradient(135deg, #ff92c2, #fff);
+  box-shadow: 0 0 20px rgba(255,255,255,0.25);
+}
+
+.tiny-label,
+.message,
+h1,
+.status,
+.countdown-subtitle {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.tiny-label.reveal,
+.message.reveal,
+h1.reveal,
+.status.reveal,
+.countdown-subtitle.reveal {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tiny-label {
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.34em;
+  font-size: 0.82rem;
+  color: #ffd6e8;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-family: "Playfair Display", "Great Vibes", cursive;
+  font-size: clamp(2.4rem, 5.6vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #fff8fb;
+  text-shadow: 0 6px 28px rgba(255, 180, 200, 0.06);
+}
+
+.message {
+  margin: 0 0 16px;
+  font-family: "Cormorant Garamond", "Georgia", serif;
+  font-size: 1.04rem;
+  line-height: 1.8;
+  color: #ffeef6;
+  opacity: 0.98;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.18);
+}
+
+.countdown-shell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 10px auto 0;
+  width: 100%;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.countdown-shell.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.countdown {
+  display: inline-block;
+  min-width: 140px;
+  font-size: clamp(6rem, 16vw, 12rem);
+  font-weight: 900;
+  line-height: 0.95;
+  color: #ffffff;
+  font-family: "Courier New", Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 28px rgba(255,255,255,0.24);
+  transition: transform 0.23s ease, opacity 0.5s ease, color 0.8s ease;
+  text-align: center;
+}
+
+.countdown.pop {
+  transform: scale(1.12);
+}
+
+.countdown.hidden {
+  opacity: 0;
+}
+
+.countdown-subtitle {
+  font-size: 0.95rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #ffe0ed;
+}
+
+.status {
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: #ffdce8;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.burst-layer,
+.petal-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.heart-burst,
+.sparkle,
+.petal,
+.float-dot {
+  position: absolute;
+  pointer-events: none;
+}
+
+.heart-burst {
+  font-size: 1.2rem;
+  animation: burstToTarget 1.3s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+  filter: drop-shadow(0 0 12px rgba(255,255,255,0.24));
+}
+
+.sparkle {
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  clip-path: polygon(50% 0%, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0% 50%, 39% 35%);
+  animation: sparkleAnim 1.05s ease-out forwards;
+}
+
+.petal {
+  width: 11px;
+  height: 11px;
+  background: radial-gradient(circle at 30% 30%, #fff 0%, #ffd8e9 40%, #ff9fbe 100%);
+  border-radius: 0 100% 0 100%;
+  opacity: 0.85;
+  animation: petalFall linear forwards;
+}
+
+.float-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.22);
+  box-shadow: 0 0 12px rgba(255,255,255,0.2);
+  animation: floatUp linear infinite;
+}
+
+
+@keyframes burstToTarget {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.18);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--tx), var(--ty), 0) scale(1.06);
+    opacity: 0.95;
   }
 }
 
-function createFloatingDots() {
-  for (let i = 0; i < 22; i += 1) {
-    const dot = document.createElement('span');
-    dot.className = 'float-dot';
-    dot.style.left = `${Math.random() * 100}vw`;
-    dot.style.top = `${Math.random() * 100}vh`;
-    dot.style.setProperty('--drift', `${(Math.random() - 0.5) * 240}px`);
-    dot.style.animationDuration = `${5 + Math.random() * 3}s`;
-    dot.style.animationDelay = `${Math.random() * 1.2}s`;
-    petalLayer.appendChild(dot);
+@keyframes sparkleAnim {
+  0% {
+    transform: scale(0.2) rotate(0deg);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.25) rotate(220deg);
+    opacity: 0;
   }
 }
 
-function createSparkles() {
-  for (let i = 0; i < 70; i += 1) {
-    const sparkle = document.createElement('span');
-    sparkle.className = 'sparkle';
-    sparkle.style.left = `${Math.random() * 100}vw`;
-    sparkle.style.top = `${Math.random() * 100}vh`;
-    sparkle.style.animationDuration = `${0.9 + Math.random() * 0.8}s`;
-    sparkle.style.animationDelay = `${Math.random() * 0.25}s`;
-    burstLayer.appendChild(sparkle);
+@keyframes petalFall {
+  0% {
+    transform: translate3d(0, -10vh, 0) rotate(0deg) scale(0.7);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--drift), 110vh, 0) rotate(760deg) scale(1);
+    opacity: 0.95;
   }
 }
 
-function drawMatrix() {
-  const chars = 'アイウエオカキ0123456789LOVE♥❤';
-  const pinks = ['#ff69b4', '#ff1493', '#ffb6d9', '#ff4d94', '#ff85c2', '#e91e8c', '#c2185b'];
-  const fs = 13;
-  const cols = Math.floor(mc.width / fs);
-  const drops = Array.from({ length: cols }, () => Math.random() * -80);
-
-  function tick() {
-    mx.fillStyle = 'rgba(0,0,0,0.055)';
-    mx.fillRect(0, 0, mc.width, mc.height);
-    for (let i = 0; i < cols; i += 1) {
-      mx.fillStyle = pinks[Math.floor(Math.random() * pinks.length)];
-      mx.font = `${fs}px monospace`;
-      mx.fillText(chars[Math.floor(Math.random() * chars.length)], i * fs, drops[i] * fs);
-      if (drops[i] * fs > mc.height && Math.random() > 0.975) {
-        drops[i] = 0;
-      }
-      drops[i] += 1;
-    }
+@keyframes floatUp {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.8);
+    opacity: 0.2;
   }
-
-  matrixTimer = setInterval(tick, 34);
-}
-
-class Dot {
-  constructor(tx, ty) {
-    this.tx = tx;
-    this.ty = ty;
-    this.x = Math.random() * dc.width;
-    this.y = Math.random() * dc.height;
-    this.vx = 0;
-    this.vy = 0;
-    this.r = 7 * (0.7 + Math.random() * 0.6);
-    this.color = ['#ffffff', '#fff0f5', '#ffe4f0', '#ffffff'][Math.floor(Math.random() * 4)];
-    this.alpha = 0;
+  50% {
+    opacity: 0.8;
   }
-
-  update() {
-    const dx = this.tx - this.x;
-    const dy = this.ty - this.y;
-    this.vx += dx * 0.09;
-    this.vy += dy * 0.09;
-    this.vx *= 0.72;
-    this.vy *= 0.72;
-    this.x += this.vx;
-    this.y += this.vy;
-    this.alpha = Math.min(1, this.alpha + 0.04);
-  }
-
-  draw() {
-    ctx.save();
-    ctx.globalAlpha = this.alpha;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-    ctx.fillStyle = this.color;
-    ctx.shadowColor = '#ffffff';
-    ctx.shadowBlur = 18;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r * 0.4, 0, Math.PI * 2);
-    ctx.fillStyle = '#fff';
-    ctx.shadowBlur = 6;
-    ctx.fill();
-    ctx.restore();
+  100% {
+    transform: translate3d(var(--drift), -100vh, 0) scale(1.2);
+    opacity: 0;
   }
 }
 
-function buildPixels(str) {
-  const FONT = {
-    '3': [[0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [0, 0, 0, 0, 1], [0, 1, 1, 1, 0], [0, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
-    '2': [[0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [0, 0, 0, 0, 1], [0, 0, 1, 1, 0], [0, 1, 0, 0, 0], [1, 0, 0, 0, 0], [1, 1, 1, 1, 1]],
-    '1': [[0, 0, 1, 0, 0], [0, 1, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 1, 1, 1, 0]],
-    Y: [[1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 0, 1, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 1, 0, 0]],
-    O: [[0, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
-    U: [[1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 1, 1, 0]],
-    A: [[0, 0, 1, 0, 0], [0, 1, 0, 1, 0], [1, 0, 0, 0, 1], [1, 1, 1, 1, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1]],
-    R: [[1, 1, 1, 1, 0], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 1, 1, 1, 0], [1, 0, 1, 0, 0], [1, 0, 0, 1, 0], [1, 0, 0, 0, 1]],
-    E: [[1, 1, 1, 1, 1], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 1, 1, 1, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 1, 1, 1, 1]],
-    M: [[1, 0, 0, 0, 1], [1, 1, 0, 1, 1], [1, 0, 1, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1]],
-    L: [[1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 0, 0, 0, 0], [1, 1, 1, 1, 1]],
-    V: [[1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [1, 0, 0, 0, 1], [0, 1, 0, 1, 0], [0, 1, 0, 1, 0], [0, 0, 1, 0, 0]]
-  };
-  const gap = 1;
-  const out = [];
-  for (let c = 0; c < str.length; c += 1) {
-    const map = FONT[str[c]] || FONT.A;
-    for (let row = 0; row < 7; row += 1) {
-      for (let col = 0; col < 5; col += 1) {
-        if (map[row] && map[row][col]) {
-          out.push({ cx: col + (5 + gap) * c, cy: row });
-        }
-      }
-    }
+@keyframes driftGrid {
+  0% {
+    transform: translateY(0);
   }
-  return out;
-}
-
-function getTargets(str) {
-  const pixels = buildPixels(str);
-  const dotGap = 16;
-  const totalW = (pixels.reduce((m, p) => Math.max(m, p.cx), 0) + 1) * dotGap;
-  const totalH = 7 * dotGap;
-  const ox = (dc.width - totalW) / 2;
-  const oy = (dc.height - totalH) / 2;
-  return pixels.map((p) => ({ x: ox + p.cx * dotGap + dotGap / 2, y: oy + p.cy * dotGap + dotGap / 2 }));
-}
-
-function showDots(str) {
-  const targets = getTargets(str);
-  while (dots.length < targets.length) {
-    dots.push(new Dot(0, 0));
-  }
-  dots.length = targets.length;
-  targets.forEach((t, i) => {
-    dots[i].tx = t.x;
-    dots[i].ty = t.y;
-    dots[i].alpha = Math.max(0, dots[i].alpha - 0.1);
-  });
-}
-
-function animateDots() {
-  ctx.clearRect(0, 0, dc.width, dc.height);
-  dots.forEach((dot) => {
-    dot.update();
-    dot.draw();
-  });
-  animId = requestAnimationFrame(animateDots);
-}
-
-function showHeart() {
-  cancelAnimationFrame(animId);
-  ctx.clearRect(0, 0, dc.width, dc.height);
-  if (matrixTimer) clearInterval(matrixTimer);
-  mx.clearRect(0, 0, mc.width, mc.height);
-}
-
-function revealHeartMessage() {
-  if (!heartOverlayEl) return;
-  heartOverlayEl.classList.add('active');
-  // short reveal to match earlier elegant reveal
-  setTimeout(() => heartOverlayEl.classList.remove('active'), 1400);
-}
-
-function buildWordTargets(centerX, centerY) {
-  const targets = [];
-  const letters = [
-    { x: centerX - 300, y: centerY },
-    { x: centerX - 230, y: centerY },
-    { x: centerX - 160, y: centerY },
-    { x: centerX - 90, y: centerY },
-    { x: centerX - 20, y: centerY },
-    { x: centerX + 55, y: centerY },
-    { x: centerX + 125, y: centerY },
-    { x: centerX + 200, y: centerY }
-  ];
-
-  letters.forEach((letter, idx) => {
-    for (let i = 0; i < 18; i += 1) {
-      const offsetX = (i % 3 - 1) * 18 + (idx % 2 ? 10 : -6);
-      const offsetY = Math.floor(i / 3) * 18 - 18 + (idx % 2 ? 18 : -6);
-      targets.push({ x: letter.x + offsetX, y: letter.y + offsetY });
-    }
-  });
-
-  return targets;
-}
-
-function triggerLoveBurst() {
-  if (isFinished) return;
-  isFinished = true;
-
-  document.body.classList.add('bursting');
-  cardEl.classList.add('final-phase');
-  countdownEl.classList.add('hidden');
-  countdownSubtitleEl.classList.add('reveal');
-
-  const displayName = unlockedName.trim() || 'em';
-  mainTextEl.textContent = `Anh yêu ${displayName} cục vàng của anh 💖`;
-  messageTextEl.textContent = 'Em là điều nhỏ bé mà anh luôn giữ trong tim 💗';
-  tinyLabelEl.textContent = 'TÌNH YÊU • ĐÃ CHẠM ĐẾN NỖI THƯƠNG';
-  statusLineEl.textContent = '[LOVE-777] Kết nối hoàn tất';
-
-  mainTextEl.classList.add('reveal');
-  messageTextEl.classList.add('reveal');
-  tinyLabelEl.classList.add('reveal');
-  statusLineEl.classList.add('reveal');
-  countdownSubtitleEl.classList.add('reveal');
-  loveTriggerEl.classList.add('reveal');
-
-  sceneTransitionEl.classList.add('active');
-  setTimeout(() => sceneTransitionEl.classList.remove('active'), 1400);
-
-  createSparkles();
-  setTimeout(() => {
-    showHeart();
-    playFinalAudio();
-    createSakuraFall();
-  }, 1000);
-}
-// final images removed per user request
-
-function createSakuraFall() {
-  if (!sakuraLayerEl) return;
-  sakuraLayerEl.innerHTML = '';
-  const petals = 20;
-  for (let i = 0; i < petals; i += 1) {
-    const p = document.createElement('span');
-    p.className = 'sakura-petal';
-    const left = Math.random() * 100;
-    p.style.left = `${left}vw`;
-    const delay = Math.random() * 2;
-    const dur = 10 + Math.random() * 10; // slow fall
-    p.style.animationDelay = `${delay}s`;
-    p.style.animationDuration = `${dur}s`;
-    p.style.transform = `rotate(${Math.random() * 360}deg)`;
-    sakuraLayerEl.appendChild(p);
+  100% {
+    transform: translateY(28px);
   }
 }
 
-function revealIntroText() {
-  [tinyLabelEl, mainTextEl, messageTextEl, statusLineEl, countdownSubtitleEl].forEach((el) => {
-    if (el) el.classList.add('reveal');
-  });
-  countdownEl.classList.remove('hidden');
+@keyframes nameGlow {
+  from { text-shadow: 0 0 8px #fff, 0 0 15px #ffb6d9, 0 0 30px #ff69b4; }
+  to { text-shadow: 0 0 20px #fff, 0 0 40px #ffb6d9, 0 0 80px #ff1493; }
 }
-
-function renderCountdown() {
-  const value = String(count).padStart(2, '0');
-  countdownEl.textContent = value;
-  countdownSubtitleEl.textContent = `00:${value}`;
-}
-
-function startCountdown() {
-  if (countdownStarted || isFinished) return;
-
-  countdownStarted = true;
-  count = 10;
-  renderCountdown();
-  countdownEl.classList.remove('hidden');
-  if (countdownShellEl) {
-    countdownShellEl.classList.add('active');
-  }
-  countdownEl.classList.remove('pop');
-  void countdownEl.offsetWidth;
-  countdownEl.classList.add('pop');
-
-  const tick = () => {
-    if (!countdownStarted || isFinished) return;
-
-    countdownEl.classList.remove('pop');
-    void countdownEl.offsetWidth;
-    countdownEl.classList.add('pop');
-
-    count -= 1;
-    renderCountdown();
-
-    if (count < 0) {
-      triggerLoveBurst();
-      return;
-    }
-
-    countdownTimer = window.setTimeout(tick, 1000);
-  };
-
-  countdownTimer = window.setTimeout(tick, 1000);
-}
-
-function showUnlockModal() {
-  if (!unlockModalEl || !unlockNameInputEl) return;
-  unlockModalEl.classList.add('active');
-  unlockModalEl.setAttribute('aria-hidden', 'false');
-  unlockNameInputEl.focus();
-}
-
-function hideUnlockModal() {
-  if (!unlockModalEl || !unlockNameInputEl) return;
-  unlockModalEl.classList.remove('active');
-  unlockModalEl.setAttribute('aria-hidden', 'true');
-  unlockNameInputEl.value = '';
-}
-
-function handleHeartUnlock() {
-  const enteredName = unlockNameInputEl?.value ?? '';
-  if (!enteredName.trim()) return;
-
-  unlockedName = enteredName.trim() || 'em';
-  messageTextEl.textContent = 'Đã mở khóa, đếm ngược đã bắt đầu ✨';
-  tinyLabelEl.textContent = 'MỞ KHÓA • ĐẾM NGƯỢC ĐANG CHẠY';
-  statusLineEl.textContent = `[LOVE-002] Tên nhận được: ${unlockedName}`;
-  hideUnlockModal();
-  startCountdown();
-}
-
-if (heartLockEl) {
-  heartLockEl.addEventListener('click', showUnlockModal);
-}
-
-if (unlockConfirmBtnEl) {
-  unlockConfirmBtnEl.addEventListener('click', handleHeartUnlock);
-}
-
-if (unlockCancelBtnEl) {
-  unlockCancelBtnEl.addEventListener('click', hideUnlockModal);
-}
-
-if (unlockModalEl) {
-  unlockModalEl.addEventListener('click', (event) => {
-    if (event.target === unlockModalEl) {
-      hideUnlockModal();
-    }
-  });
-}
-
-if (unlockNameInputEl) {
-  unlockNameInputEl.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      handleHeartUnlock();
-    }
-  });
-}
-
-if (loveTriggerEl) {
-  loveTriggerEl.addEventListener('click', () => {
-    unlockAudioPlayback();
-    revealHeartMessage();
-  });
-}
-
-window.addEventListener('pointerdown', unlockAudioPlayback, { once: true });
-window.addEventListener('keydown', unlockAudioPlayback, { once: true });
-window.addEventListener('touchstart', unlockAudioPlayback, { once: true });
-
-createPetals();
-createFloatingDots();
-drawMatrix();
-animateDots();
-revealIntroText();
-renderCountdown();
