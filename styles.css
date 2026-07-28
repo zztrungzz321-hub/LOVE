@@ -1,619 +1,102 @@
-    :root {
-      color-scheme: dark;
-    }
+/* Cleaned and consolidated stylesheet for Love confession
+   - Card layout, heart lock, unlock field
+   - Continuous sakura fall
+   - Burst sakura (unlock) + explode-out animation
+   - CountDown / final overlay styles
+*/
 
-    * {
-      box-sizing: border-box;
-    }
+:root{--bg1:#0b0610;--bg2:#22081a;--accent:#ff6fa7;--muted:#ffeef6}
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      overflow: hidden;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      color: #fef7fb;
-      background: linear-gradient(135deg, #0b0610 0%, #22081a 45%, #2b0d1f 100%);
-      position: relative;
-      transition: background 1.6s ease, color 1.2s ease;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle at top left, rgba(255, 66, 147, 0.18), transparent 30%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    body.bursting {
-      background: linear-gradient(135deg, #140815 0%, #32102c 35%, #ff6fa7 100%);
-    }
-
-    #matrixCanvas,
-    #dotCanvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-
-    #matrixCanvas { z-index: 0; }
-    #dotCanvas { z-index: 1; }
-
-    .background-grid {
-      position: fixed;
-      inset: 0;
-      background-image: linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
-      background-size: 42px 42px;
-      mask-image: linear-gradient(180deg, rgba(0,0,0,0.65), transparent);
-      opacity: 0.28;
-      pointer-events: none;
-      z-index: 0;
-      animation: driftGrid 10s linear infinite;
-    }
-
-    .container {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .card {
-      width: min(92vw, 720px);
-      padding: 32px 28px;
-      text-align: center;
-      position: relative;
-      z-index: 3;
-      border-radius: 24px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.02));
-      border: 1px solid rgba(255, 215, 160, 0.06);
-      box-shadow: 0 20px 60px rgba(16,8,12,0.6), 0 6px 18px rgba(255,160,190,0.04) inset;
-      transform: translateY(0);
-      transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), background 1.2s ease, border-color 1.2s ease, box-shadow 1.2s ease;
-    }
-
-    .card.final-phase {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: rgba(255, 255, 255, 0.22);
-      box-shadow: 0 24px 70px rgba(255, 108, 171, 0.16);
-      transform: translateY(-8px) scale(1.01);
-    }
-
-    .heart-lock {
-      margin: 8px auto 18px;
-      width: 186px;
-      height: 186px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 34px;
-      background: linear-gradient(135deg, rgba(255, 245, 238, 0.16), rgba(255, 192, 214, 0.2));
-      color: #fffefc;
-      font-family: "Montserrat", "Segoe UI", sans-serif;
-      font-size: 0.84rem;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      cursor: pointer;
-      display: inline-flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
-      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-    }
-
-    .heart-lock:hover {
-      transform: translateY(-3px) scale(1.01);
-      box-shadow: 0 20px 44px rgba(255, 118, 175, 0.24);
-      border-color: rgba(255, 255, 255, 0.34);
-    }
-
-    .heart-lock.active {
-      box-shadow: 0 20px 46px rgba(255, 124, 172, 0.28);
-      border-color: rgba(255, 255, 255, 0.42);
-    }
-
-    .heart-lock__icon {
-      font-size: 2rem;
-    }
-
-    .heart-lock__text {
-      font-size: 0.78rem;
-    }
-
-  .unlock-field {
-    margin: 0 auto 8px;
-    width: min(100%, 320px);
-    max-height: 0;
-    overflow: hidden;
-    opacity: 0;
-    transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
-  }
-
-  .unlock-field.active {
-    max-height: 60px;
-    opacity: 1;
-    margin-bottom: 12px;
-    width: 100%;
-  }
-
-  .unlock-field__input {
-    width: 100%;
-    border: 1px solid rgba(255,255,255,0.24);
-    border-radius: 999px;
-    padding: 12px 16px;
-    outline: none;
-    background: rgba(255,255,255,0.12);
-    color: #fff;
-    font-size: 1rem;
-    box-shadow: inset 0 1px 4px rgba(0,0,0,0.2);
-  }
-
-  .unlock-field__input::placeholder {
-    color: rgba(255,255,255,0.72);
-  }
-
-  .unlock-field,
-  .heart-lock {
-    transform: translateY(0) scale(1);
-  }
-
-.unlock-field.explode-out,
-.heart-lock.explode-out {
-  animation: explodeFade 0.6s ease forwards;
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  min-height:100vh;
+  overflow:hidden;
+  font-family:"Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color:#fef7fb;
+  background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 45%,#2b0d1f 100%);
+  position:relative;
 }
-
-@keyframes explodeFade {
-  0% {
-    opacity: 1;
-    transform: translateY(0) scale(1) rotate(0deg);
-  }
-  30% {
-    opacity: 1;
-    transform: translateY(-4px) scale(1.08) rotate(6deg);
-  }
-  70% {
-    opacity: 0.8;
-    transform: translateY(-12px) scale(1.2) rotate(18deg);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-24px) scale(0.2) rotate(75deg);
-  }
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;
+  background:radial-gradient(circle at top left, rgba(255,66,147,0.12), transparent 30%);
+  z-index:0;
 }
+body.bursting{background:linear-gradient(135deg,#140815 0%,#32102c 35%, #ff6fa7 100%)}
 
-.unlock-field.explode-out {
-  overflow: visible;
-}
+/* Canvas layers */
+#matrixCanvas,#dotCanvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+#matrixCanvas{z-index:0} #dotCanvas{z-index:1}
 
-  .unlock-sakura {
-    position: fixed;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #fff 0%, #ffd8e9 40%, #ff9fbe 100%);
-    pointer-events: none;
-    transform: translate(-50%, -50%) rotate(0deg);
-    animation: sakuraBurst 0.8s ease forwards;
-  }
+.background-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);background-size:42px 42px;opacity:0.22;pointer-events:none;z-index:0;mask-image:linear-gradient(180deg, rgba(0,0,0,0.6), transparent)}
 
-  @keyframes sakuraBurst {
-    0% {
-      opacity: 1;
-      transform: translate(var(--dx), var(--dy)) scale(0.45) rotate(0deg);
-    }
-    100% {
-      opacity: 0;
-      transform: translate(calc(var(--dx) * 1.4), calc(var(--dy) * 1.4)) scale(1.2) rotate(180deg);
-    }
-  }
+.container{min-height:100vh;display:grid;place-items:center;padding:24px;position:relative;z-index:3}
+.card{width:min(92vw,720px);padding:32px 28px;text-align:center;border-radius:20px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));border:1px solid rgba(255,215,160,0.06);box-shadow:0 20px 60px rgba(16,8,12,0.6);position:relative}
+.card.final-phase{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.18);box-shadow:0 24px 70px rgba(255,108,171,0.12);transform:translateY(-8px)}
 
-    .love-trigger {
-      margin: 20px auto 0;
-      border: 1px solid rgba(255, 215, 160, 0.18);
-      padding: 10px 26px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, rgba(255, 245, 238, 0.06), rgba(255, 200, 170, 0.06));
-      color: #fffefc;
-      font-family: "Great Vibes", cursive;
-      font-size: 1.18rem;
-      letter-spacing: 0.22em;
-      cursor: pointer;
-      box-shadow: 0 8px 22px rgba(0,0,0,0.45), 0 6px 18px rgba(255,180,140,0.06) inset;
-      opacity: 0;
-      transform: translateY(14px);
-      pointer-events: none;
-      transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.7s ease, box-shadow 0.7s ease, background 0.7s ease;
-    }
+.tiny-label{margin:0 0 10px;text-transform:uppercase;letter-spacing:0.34em;font-size:0.82rem;color:#ffd6e8}
+h1{margin:0 0 12px;font-family:"Playfair Display", serif;font-size:clamp(2.4rem,5.6vw,3.8rem);color:#fff}
+.message{margin:0 0 16px;color:var(--muted)}
+.status{margin-top:16px;font-size:0.85rem;color:#ffdce8;letter-spacing:0.18em}
 
-    .love-trigger.reveal {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
+/* Heart lock */
+.heart-lock{margin:8px auto 18px;width:186px;height:186px;border-radius:28px;background:linear-gradient(135deg, rgba(255,245,238,0.14), rgba(255,192,214,0.18));border:1px solid rgba(255,255,255,0.16);display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:transform .22s ease,box-shadow .22s ease}
+.heart-lock:hover{transform:translateY(-3px)}
+.heart-lock__icon{font-size:2rem}
+.heart-lock__text{font-size:.78rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase}
+.heart-lock.active{box-shadow:0 20px 46px rgba(255,124,172,0.22)}
 
-    .love-trigger:hover {
-      transform: translateY(-2px) scale(1.01);
-      box-shadow: 0 14px 34px rgba(255, 116, 175, 0.24);
-    }
+/* Unlock field */
+.unlock-field{margin:0 auto 8px;width:min(100%,320px);max-height:0;overflow:hidden;opacity:0;transition:max-height .34s ease,opacity .28s ease,margin .28s ease}
+.unlock-field.active{max-height:72px;opacity:1;margin-bottom:12px}
+.unlock-field__input{width:100%;padding:12px 16px;border-radius:999px;border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.07);color:#fff;outline:none}
 
-    .scene-transition {
-      position: fixed;
-      inset: -12%;
-      z-index: 4;
-      pointer-events: none;
-      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.24) 0%, rgba(255, 132, 176, 0.16) 34%, rgba(4, 7, 14, 0) 72%);
-      opacity: 0;
-      transform: scale(0.55);
-      transition: opacity 1.4s ease, transform 1.4s cubic-bezier(0.16, 0.84, 0.44, 1);
-    }
+/* Countdown */
+.countdown-shell{display:flex;flex-direction:column;align-items:center;gap:8px;margin:10px auto 0;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .35s ease,transform .35s ease}
+.countdown-shell.active{opacity:1;transform:translateY(0);pointer-events:auto}
+.countdown{font-family:monospace;min-width:120px;font-size:clamp(4rem,12vw,10rem);font-weight:900;color:#fff}
+.countdown.pop{transform:scale(1.12)}
+.countdown.hidden{opacity:0}
+.countdown-subtitle{font-size:.95rem;color:#ffe0ed;letter-spacing:.28em}
 
-    .scene-transition.active {
-      opacity: 1;
-      transform: scale(1.85);
-    }
+/* explode animation for hiding controls */
+.unlock-field, .heart-lock{transform-origin:center center}
+.unlock-field.explode-out, .heart-lock.explode-out{animation:explodeFade .6s cubic-bezier(.22,.9,.28,1) forwards}
+@keyframes explodeFade{0%{opacity:1;transform:translateY(0) scale(1) rotate(0)}30%{opacity:1;transform:translateY(-4px) scale(1.06) rotate(6deg)}70%{opacity:.85;transform:translateY(-12px) scale(1.16) rotate(18deg)}100%{opacity:0;transform:translateY(-28px) scale(.18) rotate(72deg)}}
 
-    .heart-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 6;
-      display: grid;
-      place-items: center;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.7s ease;
-    }
+/* small bursts used at unlock */
+.unlock-sakura{position:fixed;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff 0%,#ffd8e9 40%,#ff9fbe 100%);pointer-events:none;transform:translate(-50%,-50%);animation:sakuraBurst .82s cubic-bezier(.15,.8,.28,1) forwards}
+@keyframes sakuraBurst{0%{opacity:1;transform:translate(var(--dx),var(--dy)) scale(.45) rotate(0deg)}100%{opacity:0;transform:translate(calc(var(--dx)*1.4),calc(var(--dy)*1.4)) scale(1.25) rotate(180deg)}}
 
-    /* final floating images removed per user request */
+/* continuous sakura petals */
+.sakura-layer{position:fixed;inset:0;pointer-events:none;z-index:4}
+.sakura-layer .sakura-petal{position:absolute;width:18px;height:18px;background:radial-gradient(circle at 30% 30%,#fff 0%,#ffdbe6 45%,#ff9fbf 100%);border-radius:50% 50% 50% 50%/60% 60% 40% 40%;opacity:.95;transform:rotate(0);animation:sakuraFall linear infinite}
+@keyframes sakuraFall{0%{transform:translateY(-6vh) rotate(0deg);opacity:0}10%{opacity:1}100%{transform:translateY(110vh) rotate(360deg);opacity:.98}}
 
-    .sakura-layer {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 4;
-    }
+/* decorative layers for bursts and petals */
+.burst-layer,.petal-layer{position:fixed;inset:0;pointer-events:none;z-index:2}
+.heart-burst{position:absolute;font-size:1.2rem;filter:drop-shadow(0 0 12px rgba(255,255,255,0.22));animation:burstToTarget 1.2s cubic-bezier(.2,.9,.3,1) forwards}
+@keyframes burstToTarget{0%{transform:translate3d(0,0,0) scale(.18);opacity:0}20%{opacity:1}100%{transform:translate3d(var(--tx),var(--ty),0) scale(1.04);opacity:.95}}
 
-    .sakura-layer .sakura-petal {
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      background: radial-gradient(circle at 30% 30%, #fff 0%, #ffdbe6 45%, #ff9fbf 100%);
-      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-      opacity: 0.92;
-      transform: rotate(0deg);
-      animation-name: sakuraFall;
-      animation-timing-function: linear;
-      animation-iteration-count: infinite;
-    }
+/* tiny floating decor */
+.sparkle{width:10px;height:10px;background:#fff;clip-path:polygon(50% 0,61% 35%,100% 50%,61% 65%,50% 100%,39% 65%,0 50%,39% 35%);position:absolute}
+.petal{width:11px;height:11px;background:radial-gradient(circle at 30% 30%,#fff 0%,#ffd8e9 40%,#ff9fbe 100%);border-radius:0 100% 0 100%;opacity:.85;position:absolute;animation:petalFall linear infinite;animation-fill-mode:both}
+@keyframes petalFall{0%{transform:translate3d(0,-10vh,0) rotate(0deg) scale(.7);opacity:0}10%{opacity:1}100%{transform:translate3d(var(--drift),110vh,0) rotate(760deg) scale(1);opacity:.95}}
+.float-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.22);position:absolute;box-shadow:0 0 12px rgba(255,255,255,0.18);animation:floatUp linear infinite}
+@keyframes floatUp{0%{transform:translate3d(0,0,0) scale(.8);opacity:.2}50%{opacity:.8}100%{transform:translate3d(var(--drift),-100vh,0) scale(1.2);opacity:0}}
 
-    @keyframes sakuraFall {
-      0% { transform: translateY(-6vh) rotate(0deg); opacity: 0; }
-      10% { opacity: 1; }
-      100% { transform: translateY(110vh) rotate(360deg); opacity: 0.98; }
-    }
+/* scene transition & overlay */
+.scene-transition{position:fixed;inset:-12%;z-index:4;pointer-events:none;background:radial-gradient(circle at center, rgba(255,255,255,0.24) 0%, rgba(255,132,176,0.16) 34%, rgba(4,7,14,0) 72%);opacity:0;transform:scale(.55);transition:opacity 1.4s ease, transform 1.4s cubic-bezier(.16,.84,.44,1)}
+.scene-transition.active{opacity:1;transform:scale(1.85)}
 
-    .heart-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
+.heart-overlay{position:fixed;inset:0;z-index:6;display:grid;place-items:center;pointer-events:none;opacity:0;transition:opacity .7s ease}
+.heart-overlay.active{opacity:1;pointer-events:auto}
+.heart-overlay .heart-shape span{font-family:"Great Vibes", cursive;font-size:clamp(2.2rem,5.4vw,3.4rem);color:#fff}
 
-    .heart-overlay .heart-shape::after {
-      content: "";
-      position: absolute;
-      inset: 4%;
-      border-radius: 48% 48% 0 0;
-      box-shadow: inset 0 6px 28px rgba(255,255,255,0.06);
-    }
+/* utility */
+.reveal{opacity:1;transform:translateY(0)}
+.hidden{display:none}
 
-    .heart-overlay .heart-shape::before {
-      left: -50%;
-    }
-
-    .heart-overlay .heart-shape::after {
-      top: -50%;
-    }
-
-    .heart-overlay.active .heart-shape {
-      transform: rotate(-45deg) scale(1);
-    }
-
-    .heart-overlay .heart-shape span {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      transform: rotate(45deg);
-      font-family: "Great Vibes", cursive;
-      font-size: clamp(2.2rem, 5.4vw, 3.4rem);
-      letter-spacing: 0.26em;
-      font-weight: 700;
-      color: #ffffff;
-      text-shadow: 0 2px 6px rgba(0,0,0,0.28), 0 0 22px rgba(255, 255, 255, 0.72);
-      padding: 0 18px;
-      text-align: center;
-      line-height: 1;
-      white-space: nowrap;
-    }
-
-    .heart-overlay .heart-shape::after {
-      content: "";
-      position: absolute;
-      inset: 4%;
-      border-radius: 48% 48% 0 0;
-      box-shadow: inset 0 6px 28px rgba(255,255,255,0.06);
-    }
-
-    .heart-pulse {
-      animation: heartPulse 1.8s ease-in-out 1;
-    }
-
-    @keyframes heartPulse {
-      0% { transform: rotate(-45deg) scale(0.36); }
-      40% { transform: rotate(-45deg) scale(1.06); }
-      60% { transform: rotate(-45deg) scale(0.96); }
-      100% { transform: rotate(-45deg) scale(1); }
-    }
-
-    .heart-overlay.active .heart-shape {
-      transform: rotate(-45deg) scale(1.06);
-    }
-
-    .heart-overlay {
-      padding: 4vh 6vw;
-    }
-
-    .signal {
-      width: 78px;
-      height: 78px;
-      margin: 0 auto 16px;
-      border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.04), 0 0 30px rgba(255, 255, 255, 0.08);
-      position: relative;
-    }
-
-    .signal::before,
-    .signal::after {
-      content: "";
-      position: absolute;
-      inset: 15px;
-      border-radius: 50%;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-    }
-
-    .signal::after {
-      inset: 28px;
-      background: linear-gradient(135deg, #ff92c2, #fff);
-      box-shadow: 0 0 20px rgba(255,255,255,0.25);
-    }
-
-    .tiny-label,
-    .message,
-    h1,
-    .status,
-    .countdown-subtitle {
-      opacity: 1;
-      transform: translateY(0);
-      transition: all 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
-    }
-
-    .tiny-label.reveal,
-    .message.reveal,
-    h1.reveal,
-    .status.reveal,
-    .countdown-subtitle.reveal {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .tiny-label {
-      margin: 0 0 10px;
-      text-transform: uppercase;
-      letter-spacing: 0.34em;
-      font-size: 0.82rem;
-      color: #ffd6e8;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
-    }
-
-    h1 {
-      margin: 0 0 12px;
-      font-family: "Playfair Display", "Great Vibes", cursive;
-      font-size: clamp(2.4rem, 5.6vw, 3.8rem);
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      color: #fff8fb;
-      text-shadow: 0 6px 28px rgba(255, 180, 200, 0.06);
-    }
-
-    .message {
-      margin: 0 0 16px;
-      font-family: "Cormorant Garamond", "Georgia", serif;
-      font-size: 1.04rem;
-      line-height: 1.8;
-      color: #ffeef6;
-      opacity: 0.98;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.18);
-    }
-
-    .countdown-shell {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin: 10px auto 0;
-      width: 100%;
-      text-align: center;
-      opacity: 0;
-      transform: translateY(8px);
-      pointer-events: none;
-      transition: opacity 0.35s ease, transform 0.35s ease;
-    }
-
-    .countdown-shell.active {
-      opacity: 1;
-      transform: translateY(0);
-      pointer-events: auto;
-    }
-
-    .countdown {
-      display: inline-block;
-      min-width: 140px;
-      font-size: clamp(6rem, 16vw, 12rem);
-      font-weight: 900;
-      line-height: 0.95;
-      color: #ffffff;
-      font-family: "Courier New", Consolas, monospace;
-      letter-spacing: 0.08em;
-      text-shadow: 0 0 28px rgba(255,255,255,0.24);
-      transition: transform 0.23s ease, opacity 0.5s ease, color 0.8s ease;
-      text-align: center;
-    }
-
-    .countdown.pop {
-      transform: scale(1.12);
-    }
-
-    .countdown.hidden {
-      opacity: 0;
-    }
-
-    .countdown-subtitle {
-      font-size: 0.95rem;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: #ffe0ed;
-    }
-
-    .status {
-      margin-top: 16px;
-      font-size: 0.9rem;
-      color: #ffdce8;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-    }
-
-    .burst-layer,
-    .petal-layer {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    .heart-burst,
-    .sparkle,
-    .petal,
-    .float-dot {
-      position: absolute;
-      pointer-events: none;
-    }
-
-    .heart-burst {
-      font-size: 1.2rem;
-      animation: burstToTarget 1.3s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
-      filter: drop-shadow(0 0 12px rgba(255,255,255,0.24));
-    }
-
-    .sparkle {
-      width: 10px;
-      height: 10px;
-      background: #fff;
-      clip-path: polygon(50% 0%, 61% 35%, 100% 50%, 61% 65%, 50% 100%, 39% 65%, 0% 50%, 39% 35%);
-      animation: sparkleAnim 1.05s ease-out forwards;
-    }
-
-    .petal {
-      width: 11px;
-      height: 11px;
-      background: radial-gradient(circle at 30% 30%, #fff 0%, #ffd8e9 40%, #ff9fbe 100%);
-      border-radius: 0 100% 0 100%;
-      opacity: 0.85;
-      animation: petalFall linear infinite;
-      animation-fill-mode: both;
-    }
-
-    .float-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.22);
-      box-shadow: 0 0 12px rgba(255,255,255,0.2);
-      animation: floatUp linear infinite;
-    }
-
-
-    @keyframes burstToTarget {
-      0% {
-        transform: translate3d(0, 0, 0) scale(0.18);
-        opacity: 0;
-      }
-      20% {
-        opacity: 1;
-      }
-      100% {
-        transform: translate3d(var(--tx), var(--ty), 0) scale(1.06);
-        opacity: 0.95;
-      }
-    }
-
-    @keyframes sparkleAnim {
-      0% {
-        transform: scale(0.2) rotate(0deg);
-        opacity: 0;
-      }
-      40% {
-        opacity: 1;
-      }
-      100% {
-        transform: scale(1.25) rotate(220deg);
-        opacity: 0;
-      }
-    }
-
-    @keyframes petalFall {
-      0% {
-        transform: translate3d(0, -10vh, 0) rotate(0deg) scale(0.7);
-        opacity: 0;
-      }
-      10% {
-        opacity: 1;
-      }
-      100% {
-        transform: translate3d(var(--drift), 110vh, 0) rotate(760deg) scale(1);
-        opacity: 0.95;
-      }
-    }
-
-    @keyframes floatUp {
-      0% {
-        transform: translate3d(0, 0, 0) scale(0.8);
-        opacity: 0.2;
-      }
-      50% {
-        opacity: 0.8;
-      }
-      100% {
-        transform: translate3d(var(--drift), -100vh, 0) scale(1.2);
-        opacity: 0;
-      }
-    }
-
-    @keyframes driftGrid {
-      0% {
-        transform: translateY(0);
-      }
-      100% {
-        transform: translateY(28px);
-      }
-    }
-
-    @keyframes nameGlow {
-      from { text-shadow: 0 0 8px #fff, 0 0 15px #ffb6d9, 0 0 30px #ff69b4; }
-      to { text-shadow: 0 0 20px #fff, 0 0 40px #ffb6d9, 0 0 80px #ff1493; }
-    }
+/* responsive tweaks */
+@media (max-width:420px){.heart-lock{width:146px;height:146px}.countdown{font-size:clamp(3rem,12vw,7rem)}}
