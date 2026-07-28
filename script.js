@@ -1,5 +1,6 @@
 const countdownEl = document.getElementById('countdown');
 const countdownSubtitleEl = document.getElementById('countdownSubtitle');
+const countdownShellEl = document.getElementById('countdownShell');
 const mainTextEl = document.getElementById('mainText');
 const messageTextEl = document.getElementById('messageText');
 const tinyLabelEl = document.getElementById('tinyLabel');
@@ -9,6 +10,10 @@ const petalLayer = document.getElementById('petalLayer');
 const cardEl = document.querySelector('.card');
 const loveTriggerEl = document.getElementById('loveTrigger');
 const heartLockEl = document.getElementById('heartLock');
+const unlockModalEl = document.getElementById('unlockModal');
+const unlockNameInputEl = document.getElementById('unlockNameInput');
+const unlockConfirmBtnEl = document.getElementById('unlockConfirmBtn');
+const unlockCancelBtnEl = document.getElementById('unlockCancelBtn');
 const sceneTransitionEl = document.getElementById('sceneTransition');
 const heartOverlayEl = document.getElementById('heartOverlay');
 const mc = document.getElementById('matrixCanvas');
@@ -333,6 +338,9 @@ function startCountdown() {
   count = 10;
   renderCountdown();
   countdownEl.classList.remove('hidden');
+  if (countdownShellEl) {
+    countdownShellEl.classList.add('active');
+  }
   countdownEl.classList.remove('pop');
   void countdownEl.offsetWidth;
   countdownEl.classList.add('pop');
@@ -358,19 +366,59 @@ function startCountdown() {
   countdownTimer = window.setTimeout(tick, 1000);
 }
 
+function showUnlockModal() {
+  if (!unlockModalEl || !unlockNameInputEl) return;
+  unlockModalEl.classList.add('active');
+  unlockModalEl.setAttribute('aria-hidden', 'false');
+  unlockNameInputEl.focus();
+}
+
+function hideUnlockModal() {
+  if (!unlockModalEl || !unlockNameInputEl) return;
+  unlockModalEl.classList.remove('active');
+  unlockModalEl.setAttribute('aria-hidden', 'true');
+  unlockNameInputEl.value = '';
+}
+
 function handleHeartUnlock() {
-  const enteredName = window.prompt('Nhập tên của em nhé 💖', 'em');
-  if (enteredName === null) return;
+  const enteredName = unlockNameInputEl?.value ?? '';
+  if (!enteredName.trim()) return;
 
   unlockedName = enteredName.trim() || 'em';
   messageTextEl.textContent = 'Đã mở khóa, đếm ngược đã bắt đầu ✨';
   tinyLabelEl.textContent = 'MỞ KHÓA • ĐẾM NGƯỢC ĐANG CHẠY';
   statusLineEl.textContent = `[LOVE-002] Tên nhận được: ${unlockedName}`;
+  hideUnlockModal();
   startCountdown();
 }
 
 if (heartLockEl) {
-  heartLockEl.addEventListener('click', handleHeartUnlock);
+  heartLockEl.addEventListener('click', showUnlockModal);
+}
+
+if (unlockConfirmBtnEl) {
+  unlockConfirmBtnEl.addEventListener('click', handleHeartUnlock);
+}
+
+if (unlockCancelBtnEl) {
+  unlockCancelBtnEl.addEventListener('click', hideUnlockModal);
+}
+
+if (unlockModalEl) {
+  unlockModalEl.addEventListener('click', (event) => {
+    if (event.target === unlockModalEl) {
+      hideUnlockModal();
+    }
+  });
+}
+
+if (unlockNameInputEl) {
+  unlockNameInputEl.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleHeartUnlock();
+    }
+  });
 }
 
 if (loveTriggerEl) {
