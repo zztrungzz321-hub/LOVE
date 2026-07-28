@@ -8,6 +8,7 @@ const burstLayer = document.getElementById('burstLayer');
 const petalLayer = document.getElementById('petalLayer');
 const cardEl = document.querySelector('.card');
 const loveTriggerEl = document.getElementById('loveTrigger');
+const heartLockEl = document.getElementById('heartLock');
 const sceneTransitionEl = document.getElementById('sceneTransition');
 const heartOverlayEl = document.getElementById('heartOverlay');
 const mc = document.getElementById('matrixCanvas');
@@ -22,6 +23,9 @@ dc.height = window.innerHeight;
 
 let count = 10;
 let isFinished = false;
+let countdownStarted = false;
+let countdownTimer = null;
+let unlockedName = 'em';
 let matrixTimer = null;
 let dots = [];
 let animId = null;
@@ -266,7 +270,8 @@ function triggerLoveBurst() {
   countdownEl.classList.add('hidden');
   countdownSubtitleEl.classList.add('reveal');
 
-  mainTextEl.textContent = 'Anh yêu cục vàng của anh 💖';
+  const displayName = unlockedName.trim() || 'em';
+  mainTextEl.textContent = `Anh yêu ${displayName} cục vàng của anh 💖`;
   messageTextEl.textContent = 'Em là điều nhỏ bé mà anh luôn giữ trong tim 💗';
   tinyLabelEl.textContent = 'TÌNH YÊU • ĐÃ CHẠM ĐẾN NỖI THƯƠNG';
   statusLineEl.textContent = '[LOVE-777] Kết nối hoàn tất';
@@ -315,22 +320,57 @@ function revealIntroText() {
   countdownEl.classList.remove('hidden');
 }
 
-function updateCountdown() {
+function renderCountdown() {
+  const value = String(count).padStart(2, '0');
+  countdownEl.textContent = value;
+  countdownSubtitleEl.textContent = `00:${value}`;
+}
+
+function startCountdown() {
+  if (countdownStarted || isFinished) return;
+
+  countdownStarted = true;
+  count = 10;
+  renderCountdown();
+  countdownEl.classList.remove('hidden');
   countdownEl.classList.remove('pop');
   void countdownEl.offsetWidth;
   countdownEl.classList.add('pop');
 
-  const value = String(count).padStart(2, '0');
-  countdownEl.textContent = value;
-  countdownSubtitleEl.textContent = `00:${value}`;
+  const tick = () => {
+    if (!countdownStarted || isFinished) return;
 
-  if (count <= 0) {
-    triggerLoveBurst();
-    return;
-  }
+    countdownEl.classList.remove('pop');
+    void countdownEl.offsetWidth;
+    countdownEl.classList.add('pop');
 
-  count -= 1;
-  setTimeout(updateCountdown, 1000);
+    count -= 1;
+    renderCountdown();
+
+    if (count < 0) {
+      triggerLoveBurst();
+      return;
+    }
+
+    countdownTimer = window.setTimeout(tick, 1000);
+  };
+
+  countdownTimer = window.setTimeout(tick, 1000);
+}
+
+function handleHeartUnlock() {
+  const enteredName = window.prompt('Nhập tên của em nhé 💖', 'em');
+  if (enteredName === null) return;
+
+  unlockedName = enteredName.trim() || 'em';
+  messageTextEl.textContent = 'Đã mở khóa, đếm ngược đã bắt đầu ✨';
+  tinyLabelEl.textContent = 'MỞ KHÓA • ĐẾM NGƯỢC ĐANG CHẠY';
+  statusLineEl.textContent = `[LOVE-002] Tên nhận được: ${unlockedName}`;
+  startCountdown();
+}
+
+if (heartLockEl) {
+  heartLockEl.addEventListener('click', handleHeartUnlock);
 }
 
 if (loveTriggerEl) {
@@ -349,4 +389,4 @@ createFloatingDots();
 drawMatrix();
 animateDots();
 revealIntroText();
-updateCountdown();
+renderCountdown();
