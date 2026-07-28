@@ -534,7 +534,8 @@
       background: radial-gradient(circle at 30% 30%, #fff 0%, #ffd8e9 40%, #ff9fbe 100%);
       border-radius: 0 100% 0 100%;
       opacity: 0.85;
-      animation: petalFall linear forwards;
+      animation: petalFall linear infinite;
+      animation-fill-mode: both;
     }
 
     .float-dot {
