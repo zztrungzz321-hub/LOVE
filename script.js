@@ -1,6 +1,7 @@
 const countdownEl = document.getElementById('countdown');
 const countdownSubtitleEl = document.getElementById('countdownSubtitle');
 const countdownShellEl = document.getElementById('countdownShell');
+const unlockFieldEl = document.getElementById('unlockField');
 const mainTextEl = document.getElementById('mainText');
 const messageTextEl = document.getElementById('messageText');
 const tinyLabelEl = document.getElementById('tinyLabel');
@@ -10,10 +11,7 @@ const petalLayer = document.getElementById('petalLayer');
 const cardEl = document.querySelector('.card');
 const loveTriggerEl = document.getElementById('loveTrigger');
 const heartLockEl = document.getElementById('heartLock');
-const unlockModalEl = document.getElementById('unlockModal');
 const unlockNameInputEl = document.getElementById('unlockNameInput');
-const unlockConfirmBtnEl = document.getElementById('unlockConfirmBtn');
-const unlockCancelBtnEl = document.getElementById('unlockCancelBtn');
 const sceneTransitionEl = document.getElementById('sceneTransition');
 const heartOverlayEl = document.getElementById('heartOverlay');
 const mc = document.getElementById('matrixCanvas');
@@ -31,6 +29,7 @@ let isFinished = false;
 let countdownStarted = false;
 let countdownTimer = null;
 let unlockedName = 'em';
+let unlockReady = false;
 let matrixTimer = null;
 let dots = [];
 let animId = null;
@@ -366,50 +365,37 @@ function startCountdown() {
   countdownTimer = window.setTimeout(tick, 1000);
 }
 
-function showUnlockModal() {
-  if (!unlockModalEl || !unlockNameInputEl) return;
-  unlockModalEl.classList.add('active');
-  unlockModalEl.setAttribute('aria-hidden', 'false');
-  unlockNameInputEl.focus();
-}
-
-function hideUnlockModal() {
-  if (!unlockModalEl || !unlockNameInputEl) return;
-  unlockModalEl.classList.remove('active');
-  unlockModalEl.setAttribute('aria-hidden', 'true');
-  unlockNameInputEl.value = '';
-}
-
 function handleHeartUnlock() {
+  if (!unlockReady) {
+    unlockReady = true;
+    if (unlockFieldEl) {
+      unlockFieldEl.classList.add('active');
+    }
+    if (unlockNameInputEl) {
+      unlockNameInputEl.focus();
+    }
+    messageTextEl.textContent = 'Nhập tên rồi bấm lại nút mở khóa để tiếp tục 💖';
+    if (heartLockEl) {
+      heartLockEl.innerHTML = '<span class="heart-lock__icon">🔓</span><span class="heart-lock__text">BẮT ĐẦU</span>';
+    }
+    return;
+  }
+
   const enteredName = unlockNameInputEl?.value ?? '';
-  if (!enteredName.trim()) return;
+  if (!enteredName.trim()) {
+    messageTextEl.textContent = 'Vui lòng nhập tên trước khi bắt đầu 💖';
+    return;
+  }
 
   unlockedName = enteredName.trim() || 'em';
   messageTextEl.textContent = 'Đã mở khóa, đếm ngược đã bắt đầu ✨';
   tinyLabelEl.textContent = 'MỞ KHÓA • ĐẾM NGƯỢC ĐANG CHẠY';
   statusLineEl.textContent = `[LOVE-002] Tên nhận được: ${unlockedName}`;
-  hideUnlockModal();
   startCountdown();
 }
 
 if (heartLockEl) {
-  heartLockEl.addEventListener('click', showUnlockModal);
-}
-
-if (unlockConfirmBtnEl) {
-  unlockConfirmBtnEl.addEventListener('click', handleHeartUnlock);
-}
-
-if (unlockCancelBtnEl) {
-  unlockCancelBtnEl.addEventListener('click', hideUnlockModal);
-}
-
-if (unlockModalEl) {
-  unlockModalEl.addEventListener('click', (event) => {
-    if (event.target === unlockModalEl) {
-      hideUnlockModal();
-    }
-  });
+  heartLockEl.addEventListener('click', handleHeartUnlock);
 }
 
 if (unlockNameInputEl) {
