@@ -376,6 +376,7 @@ function handleHeartUnlock() {
     }
     messageTextEl.textContent = 'Nhập tên rồi bấm lại nút mở khóa để tiếp tục 💖';
     if (heartLockEl) {
+      heartLockEl.classList.add('active');
       heartLockEl.innerHTML = '<span class="heart-lock__icon">🔓</span><span class="heart-lock__text">BẮT ĐẦU</span>';
     }
     return;
@@ -391,6 +392,10 @@ function handleHeartUnlock() {
   messageTextEl.textContent = 'Đã mở khóa, đếm ngược đã bắt đầu ✨';
   tinyLabelEl.textContent = 'MỞ KHÓA • ĐẾM NGƯỢC ĐANG CHẠY';
   statusLineEl.textContent = `[LOVE-002] Tên nhận được: ${unlockedName}`;
+  if (heartLockEl) {
+    heartLockEl.classList.add('active');
+    heartLockEl.innerHTML = '<span class="heart-lock__icon">✅</span><span class="heart-lock__text">ĐÃ MỞ</span>';
+  }
   startCountdown();
 }
 
