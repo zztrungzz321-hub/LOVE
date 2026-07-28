@@ -99,9 +99,11 @@ h1{margin:0 0 12px;font-family:"Playfair Display", serif;font-size:clamp(2.4rem,
 .hidden{display:none}
 
 /* audio toggle (corner) - made larger and brighter for visibility */
-.audio-toggle{position:fixed;right:18px;top:18px;z-index:9999;display:inline-grid;place-items:center;width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg, rgba(255,111,167,0.92), rgba(255,200,220,0.9));color:#330017;cursor:pointer;font-size:20px;border:1px solid rgba(255,255,255,0.12);box-shadow:0 10px 30px rgba(0,0,0,0.36);transition:transform .18s ease,opacity .15s ease}
-.audio-toggle:hover{transform:translateY(-3px) scale(1.02)}
-.audio-toggle.muted{opacity:0.9;filter:grayscale(.2)}
+.audio-toggle{position:fixed;right:18px;top:18px;z-index:10001;display:inline-grid;place-items:center;width:72px;height:72px;border-radius:14px;background:linear-gradient(135deg, rgba(255,111,167,0.96), rgba(255,200,220,0.95));color:#330017;cursor:pointer;font-size:24px;border:1px solid rgba(255,255,255,0.14);box-shadow:0 14px 36px rgba(0,0,0,0.4);transition:transform .14s ease,opacity .12s ease;pointer-events:auto;touch-action:manipulation;padding:6px}
+.audio-toggle:hover{transform:translateY(-3px) scale(1.03)}
+.audio-toggle:active{transform:translateY(0) scale(.98)}
+.audio-toggle:focus{outline:2px solid rgba(255,255,255,0.12);outline-offset:3px}
+.audio-toggle.muted{opacity:0.95;filter:grayscale(.18)}
 
 /* responsive tweaks */
 @media (max-width:420px){.heart-lock{width:146px;height:146px}.countdown{font-size:clamp(3rem,12vw,7rem)}}
