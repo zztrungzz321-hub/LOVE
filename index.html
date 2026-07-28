@@ -20,12 +20,22 @@
         <div class="signal"></div>
         <p class="tiny-label" id="tinyLabel">SẴN SÀNG • GỬI TÌNH YÊU</p>
         <h1 id="mainText">EM CÓ BIẾT KHÔNG?</h1>
-        <p class="message" id="messageText">Nhấn vào ổ khóa để bắt đầu 💖</p>
+        <p class="message" id="messageText">Nhấn vào ổ khóa lớn để nhập tên và bắt đầu 💖</p>
         <button class="heart-lock" id="heartLock" type="button" aria-label="Mở khóa trái tim">
-          <span class="heart-lock__icon">🔐</span>
-          <span class="heart-lock__text">MỞ KHÓA TRÁI TIM</span>
+          <span class="heart-lock__icon">🔒</span>
+          <span class="heart-lock__text">MỞ KHÓA</span>
         </button>
-        <div class="countdown-shell">
+        <div class="unlock-modal" id="unlockModal" aria-hidden="true">
+          <div class="unlock-modal__card">
+            <p class="unlock-modal__title">Nhập tên của em</p>
+            <input class="unlock-modal__input" id="unlockNameInput" type="text" maxlength="24" placeholder="Ví dụ: Mai..." />
+            <div class="unlock-modal__actions">
+              <button class="unlock-modal__button unlock-modal__button--primary" id="unlockConfirmBtn" type="button">Tiếp tục</button>
+              <button class="unlock-modal__button" id="unlockCancelBtn" type="button">Đóng</button>
+            </div>
+          </div>
+        </div>
+        <div class="countdown-shell" id="countdownShell">
           <div class="countdown" id="countdown">10</div>
           <div class="countdown-subtitle" id="countdownSubtitle">00:10</div>
         </div>
